@@ -51,6 +51,11 @@
             <div class="metric-value">{{ overallWinRate }}%</div>
             <div class="metric-label">平均胜率</div>
           </div>
+          <!-- 用户信息卡片 -->
+          <div class="metric-card user-info-card" v-if="currentUserInfo">
+            <div class="metric-value">{{ currentUserInfo.avatar }}</div>
+            <div class="metric-label">{{ currentUserInfo.name }}</div>
+          </div>
         </div>
 
         <!-- 操作区域 -->
@@ -480,11 +485,13 @@
 import { ref, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, useDialog } from 'naive-ui'
+import { useAuthStore } from '@/stores/auth'
 import { NInput, NButton, NTable, NCard, NEmpty, NModal, NInputNumber, NIcon, NDropdown, NCheckbox, NPagination } from 'naive-ui'
 
 const router = useRouter()
 const message = useMessage()
 const dialog = useDialog()
+const authStore = useAuthStore()
 
 // 切换标签页
 const activeTab = ref('lol')
@@ -912,6 +919,10 @@ const batchEdit = () => {
 }
 
 // 计算属性
+const currentUserInfo = computed(() => {
+  return authStore.getCurrentUser()
+})
+
 const filteredFriends = computed(() => {
   let result = friends.value
   
@@ -1145,10 +1156,20 @@ const getRankClass = (rank) => {
 }
 
 // 数据持久化
+const getStorageKey = () => {
+  const authStore = useAuthStore()
+  const currentUser = authStore.getCurrentUser()
+  if (currentUser && currentUser.username) {
+    return `lol-tracker-friends-${currentUser.username}`
+  }
+  return 'lol-tracker-friends' // 默认键（用户未登录时使用）
+}
+
 const saveData = () => {
   operationInProgress.value = true
   try {
-    localStorage.setItem('lol-tracker-friends', JSON.stringify(friends.value))
+    const storageKey = getStorageKey()
+    localStorage.setItem(storageKey, JSON.stringify(friends.value))
   } finally {
     operationInProgress.value = false
   }
@@ -1157,9 +1178,13 @@ const saveData = () => {
 const loadData = () => {
   operationInProgress.value = true
   try {
-    const saved = localStorage.getItem('lol-tracker-friends')
+    const storageKey = getStorageKey()
+    const saved = localStorage.getItem(storageKey)
     if (saved) {
       friends.value = JSON.parse(saved)
+    } else {
+      // 如果当前用户没有数据，初始化为空数组
+      friends.value = []
     }
   } finally {
     operationInProgress.value = false
