@@ -15,4 +15,19 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  // Vercel部署配置
+  base: './', // 使用相对路径
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          ui: ['naive-ui'],
+          charts: ['echarts', 'vue-echarts']
+        }
+      }
+    }
+  }
 })
