@@ -10,7 +10,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/dashboard'
+      redirect: '/login'
     },
     {
       path: '/login',
@@ -38,15 +38,28 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
   // 检查认证状态
-  authStore.checkAuth()
+  const isAuthenticated = authStore.checkAuth()
   
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  // 处理根路径重定向
+  if (to.path === '/') {
     next('/login')
-  } else if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/dashboard')
-  } else {
-    next()
+    return
   }
+  
+  // 如果需要认证但未登录，重定向到登录页
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next('/login')
+    return
+  }
+  
+  // 如果已登录但访问登录页，重定向到仪表盘
+  if (to.path === '/login' && isAuthenticated) {
+    next('/dashboard')
+    return
+  }
+  
+  // 其他情况允许访问
+  next()
 })
 
 export default router

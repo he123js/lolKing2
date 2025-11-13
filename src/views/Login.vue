@@ -61,8 +61,9 @@
       <div class="login-footer">
         <p class="demo-account">
           <strong>演示账户：</strong><br>
-          用户名: admin 密码: 123456<br>
-          用户名: user 密码: 123456
+          超级管理员: 豆腐干 密码: 123456<br>
+          用户名: lol大王 密码: 123456
+          用户名: 比奇堡 密码: 123456
         </p>
       </div>
     </div>
@@ -113,9 +114,6 @@ const handleLogin = async () => {
     await authStore.login(formValue.value.username, formValue.value.password)
     
     message.success('登录成功！')
-    
-    // 保存用户信息到本地存储
-    authStore.saveUserToStorage()
     
     // 跳转到仪表盘
     setTimeout(() => {

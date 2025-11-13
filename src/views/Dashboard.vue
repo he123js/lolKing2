@@ -5,20 +5,44 @@
       <NLayout class="dashboard-layout">
         <NLayoutContent class="dashboard-content">
           <div class="dashboard-container">
-            <!-- 顶部导航栏 -->
+            <!-- 顶部导航栏 - Apple风格设计 -->
             <header class="dashboard-header">
               <div class="header-content">
                 <div class="header-left">
-                  <h1>MyLife Dashboard</h1>
-                  <p>你的数字生活中心</p>
+                  <h1 class="app-title">MyLife</h1>
+                  <p class="app-subtitle">你的数字生活中心</p>
+                </div>
+                <div class="header-center">
+                  <!-- 简约导航标签 -->
+                  <nav class="nav-tabs">
+                    <button 
+                      :class="['nav-tab', { active: activeTab === 'dashboard' }]"
+                      @click="switchTab('dashboard')"
+                    >
+                      <span class="tab-icon">📊</span>
+                      <span class="tab-label">仪表盘</span>
+                    </button>
+                    <button 
+                      :class="['nav-tab', { active: activeTab === 'lol' }]"
+                      @click="switchTab('lol')"
+                    >
+                      <span class="tab-icon">🎮</span>
+                      <span class="tab-label">LOL战绩</span>
+                    </button>
+                  </nav>
                 </div>
                 <div class="header-right">
-                  <div class="user-info">
-                    <n-avatar round size="small">{{ authStore.user?.avatar || '👤' }}</n-avatar>
-                    <span class="user-name">{{ authStore.user?.name || '用户' }}</span>
-                    <n-button size="small" @click="handleLogout">
-                      退出登录
-                    </n-button>
+                  <div class="user-area">
+                    <div class="user-avatar">
+                      <span class="avatar-emoji">{{ authStore.getCurrentUser()?.avatar || '👤' }}</span>
+                    </div>
+                    <div class="user-details">
+                      <span class="user-name">{{ authStore.getCurrentUser()?.name || '用户' }}</span>
+                      <button class="logout-btn" @click="handleLogout">
+                        <span class="logout-icon">🚪</span>
+                        <span class="logout-text">退出</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -68,10 +92,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
-import { NConfigProvider, NGlobalStyle, NLayout, NLayoutContent, NMessageProvider, NAvatar, NButton } from 'naive-ui'
+import { NConfigProvider, NGlobalStyle, NLayout, NLayoutContent, NMessageProvider, NAvatar, NButton, NIcon } from 'naive-ui'
 import WelcomeCard from '@/components/WelcomeCard.vue'
 import TodoCard from '@/components/TodoCard.vue'
 import HabitsCard from '@/components/HabitsCard.vue'
@@ -86,24 +110,35 @@ const message = useMessage()
 const authStore = useAuthStore()
 
 const theme = ref('light')
-document.addEventListener('contextmenu', function(e) {
-  console.log('右键菜单被禁用');
-  e.preventDefault();
-});
-document.addEventListener('copy', function(e) {
-  console.log('复制被禁用');
-  e.preventDefault();
-});
+const activeTab = ref('dashboard')
 
-document.addEventListener('cut', function(e) {
-  console.log('剪切被禁用');
-  e.preventDefault();
-});
+// 切换标签页
+const switchTab = (tab) => {
+  activeTab.value = tab
+  if (tab === 'dashboard') {
+    router.push('/dashboard')
+  } else if (tab === 'lol') {
+    router.push('/lol-tracker')
+  }
+}
+// document.addEventListener('contextmenu', function(e) {
+//   console.log('右键菜单被禁用');
+//   e.preventDefault();
+// });
+// document.addEventListener('copy', function(e) {
+//   console.log('复制被禁用');
+//   e.preventDefault();
+// });
 
-document.addEventListener('paste', function(e) {
-  console.log('粘贴被禁用');
-  e.preventDefault();
-});
+// document.addEventListener('cut', function(e) {
+//   console.log('剪切被禁用');
+//   e.preventDefault();
+// });
+
+// document.addEventListener('paste', function(e) {
+//   console.log('粘贴被禁用');
+//   e.preventDefault();
+// });
 // 响应式布局配置
 const layoutConfig = ref({
   lg: [
@@ -151,10 +186,18 @@ const handleResize = () => {
 
 // 退出登录
 const handleLogout = () => {
+  console.log('开始退出登录流程');
+  
+  // 清除认证状态
   authStore.logout()
-  authStore.saveUserToStorage()
+  
+  console.log('已清除认证数据');
+  
+  // 使用replace而不是push，避免用户可以回退到dashboard
+  router.replace('/login')
+  console.log('执行路由跳转到登录页面');
+  
   message.success('已退出登录')
-  router.push('/login')
 }
 
 onMounted(() => {
@@ -169,23 +212,29 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Apple风格设计系统 */
 .dashboard-layout {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f5f7; /* 苹果官网背景色 */
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
 }
 
 .dashboard-content {
-  padding: 20px;
+  padding: 0;
 }
 
 .dashboard-container {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
+  padding: 32px 24px;
 }
 
+/* 顶部导航栏样式 */
 .dashboard-header {
-  margin-bottom: 40px;
-  padding: 20px 0;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e8e8ed;
 }
 
 .header-content {
@@ -193,105 +242,241 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 24px;
+  width: 100%;
 }
 
-.header-left h1 {
-  font-size: 2.5rem;
+.header-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.app-title {
+  font-size: 32px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
+  color: #1d1d1f; /* 苹果深色文字 */
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
-.header-left p {
-  font-size: 1.2rem;
-  color: #666;
-  opacity: 0.8;
+.app-subtitle {
+  font-size: 17px;
+  color: #86868b; /* 苹果副标题灰色 */
+  font-weight: 400;
+  margin: 0;
 }
 
-.user-info {
+.header-center {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+/* 导航标签样式 */
+.nav-tabs {
+  display: flex;
+  background: #f5f5f7;
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid #e8e8ed;
+}
+
+.nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-size: 15px;
+  font-weight: 500;
+  color: #86868b;
+}
+
+.nav-tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+
+.nav-tab.active {
+  background: white;
+  color: #007AFF; /* 苹果蓝色 */
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+.tab-label {
+  font-weight: 600;
+}
+
+.header-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 200px;
+}
+
+/* 用户区域样式 */
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e8e8ed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-emoji {
+  font-size: 20px;
+}
+
+.user-details {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 8px 16px;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .user-name {
-  font-weight: 500;
-  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
 }
 
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid #e8e8ed;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  color: #ff3b30; /* 苹果红色 */
+}
+
+.logout-btn:hover {
+  background: #ff3b30;
+  color: white;
+  border-color: #ff3b30;
+}
+
+/* 仪表盘网格布局 */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
   grid-auto-rows: minmax(100px, auto);
+  max-height: calc(100vh - 200px);
+  padding: 10px 0;
 }
 
 .grid-item {
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: white;
+  border: 1px solid #f0f0f0;
+  position: relative;
 }
 
 .grid-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 /* 响应式布局 */
-.welcome { grid-area: 1 / 1 / 3 / 5; }
-.weather { grid-area: 1 / 5 / 3 / 7; }
-.system { grid-area: 1 / 7 / 3 / 9; }
-.todo { grid-area: 3 / 1 / 6 / 4; }
-.habits { grid-area: 3 / 4 / 6 / 7; }
-.music { grid-area: 3 / 7 / 6 / 9; }
-.github { grid-area: 6 / 1 / 9 / 5; }
+.welcome { grid-area: 1 / 1 / 3 / 7; min-height: 240px; }
+.weather { grid-area: 1 / 7 / 3 / 10; min-height: 240px; }
+.system { grid-area: 1 / 10 / 3 / 13; min-height: 240px; }
+.todo { grid-area: 3 / 1 / 6 / 5; min-height: 320px; }
+.habits { grid-area: 3 / 5 / 6 / 9; min-height: 320px; }
+.music { grid-area: 3 / 9 / 6 / 13; min-height: 320px; }
+.github { grid-area: 6 / 1 / 9 / 9; min-height: 320px; }
 
 /* 中等屏幕 */
 @media (max-width: 1199px) {
   .dashboard-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(8, 1fr);
   }
   
   .welcome { grid-area: 1 / 1 / 3 / 5; }
-  .weather { grid-area: 3 / 1 / 5 / 3; }
-  .system { grid-area: 3 / 3 / 5 / 5; }
-  .todo { grid-area: 5 / 1 / 8 / 3; }
-  .habits { grid-area: 5 / 3 / 8 / 5; }
-  .music { grid-area: 8 / 1 / 11 / 3; }
-  .github { grid-area: 8 / 3 / 11 / 5; }
+  .weather { grid-area: 1 / 5 / 3 / 7; }
+  .system { grid-area: 1 / 7 / 3 / 9; }
+  .todo { grid-area: 3 / 1 / 6 / 4; }
+  .habits { grid-area: 3 / 4 / 6 / 7; }
+  .music { grid-area: 3 / 7 / 6 / 9; }
+  .github { grid-area: 6 / 1 / 9 / 5; }
 }
 
 /* 小屏幕 */
 @media (max-width: 767px) {
+  .dashboard-container {
+    padding: 20px 16px;
+  }
+  
   .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   
   .header-content {
     flex-direction: column;
     text-align: center;
+    gap: 16px;
   }
   
-  .header-left h1 {
-    font-size: 2rem;
+  .app-title {
+    font-size: 28px;
   }
   
-  .welcome { grid-area: 1 / 1 / 3 / 3; }
-  .weather { grid-area: 3 / 1 / 5 / 2; }
-  .system { grid-area: 3 / 2 / 5 / 3; }
-  .todo { grid-area: 5 / 1 / 8 / 3; }
-  .habits { grid-area: 8 / 1 / 11 / 3; }
-  .music { grid-area: 11 / 1 / 14 / 3; }
-  .github { grid-area: 14 / 1 / 17 / 3; }
+  .user-area {
+    justify-content: center;
+  }
+  
+  /* 重置所有grid-area */
+  .welcome, .weather, .system, .todo, .habits, .music, .github {
+    grid-area: auto;
+  }
 }
+
+/* 微动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.grid-item {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.grid-item:nth-child(2) { animation-delay: 0.1s; }
+.grid-item:nth-child(3) { animation-delay: 0.2s; }
+.grid-item:nth-child(4) { animation-delay: 0.3s; }
+.grid-item:nth-child(5) { animation-delay: 0.4s; }
+.grid-item:nth-child(6) { animation-delay: 0.5s; }
+.grid-item:nth-child(7) { animation-delay: 0.6s; }
 </style>

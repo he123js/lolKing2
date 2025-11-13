@@ -230,7 +230,7 @@ onUnmounted(() => {
   text-align: center;
   margin-bottom: 24px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #646465 0%, #e3dee9 100%);
   border-radius: 12px;
   color: white;
 }
